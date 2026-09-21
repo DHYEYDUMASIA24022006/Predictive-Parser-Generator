@@ -53,6 +53,16 @@ const ParserSteps = ({
   const autoPlayRef = useRef(null);
   const activeRowRef = useRef(null);
 
+  const [copiedEps, setCopiedEps] = useState(false);
+
+  const handleCopyEpsilon = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText('ε');
+    }
+    setCopiedEps(true);
+    setTimeout(() => setCopiedEps(false), 2000);
+  };
+
   const steps = parseResult?.steps ?? [];
   const totalSteps = steps.length;
 
@@ -103,7 +113,17 @@ const ParserSteps = ({
           </button>
         </div>
         <div>
-          <label className="input-label">Enter input tokens (space-separated, $ will be appended automatically)</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <label className="input-label" style={{ margin: 0 }}>Enter input tokens (space-separated, $ will be appended automatically)</label>
+            <button
+              type="button"
+              className={`copy-chip-btn ${copiedEps ? 'copied' : ''}`}
+              onClick={handleCopyEpsilon}
+              title="Copy ε to clipboard"
+            >
+              {copiedEps ? '✓ Copied ε!' : '📋 Copy ε'}
+            </button>
+          </div>
           <input
             className="input-string-field"
             value={inputString}

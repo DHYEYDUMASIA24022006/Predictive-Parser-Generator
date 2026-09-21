@@ -753,3 +753,114 @@ td.empty-cell {
   top: 0;
   z-index: 1;
 }
+
+/* ===== Epsilon & Symbol Helper Box ===== */
+.symbol-helper-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.95rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.symbol-box-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.symbol-box-tag {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.epsilon-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.28rem 0.75rem;
+  background: var(--purple-dim);
+  border: 1px solid var(--purple);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.epsilon-chip-btn:hover {
+  background: #4e2991;
+  box-shadow: 0 0 10px rgba(188, 140, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.epsilon-symbol {
+  font-family: var(--font-mono);
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: var(--purple);
+  line-height: 1;
+}
+
+.epsilon-label {
+  font-size: 0.78rem;
+  color: var(--text-primary);
+}
+
+.copy-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.75rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.copy-chip-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.copy-chip-btn.copied {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.symbol-box-right {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.mono-tag {
+  font-family: var(--font-mono);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 0.76rem;
+}
+

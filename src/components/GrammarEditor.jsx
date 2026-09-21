@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { exampleGrammars } from '../data/exampleGrammars.js';
 
 const GrammarEditor = ({
@@ -9,6 +9,32 @@ const GrammarEditor = ({
   onParse,
 }) => {
   const [showExamples, setShowExamples] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const textareaRef = useRef(null);
+
+  const handleInsertSymbol = (sym) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      onGrammarChange(grammarText + ' ' + sym);
+      return;
+    }
+    const start = textarea.selectionStart ?? grammarText.length;
+    const end = textarea.selectionEnd ?? grammarText.length;
+    const nextText = grammarText.slice(0, start) + sym + grammarText.slice(end);
+    onGrammarChange(nextText);
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + sym.length, start + sym.length);
+    }, 0);
+  };
+
+  const handleCopySymbol = (sym) => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(sym);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="section fade-in">
@@ -57,7 +83,35 @@ const GrammarEditor = ({
 
         <div>
           <label className="input-label">Productions (one per line, use | for alternatives, ε for epsilon)</label>
+
+          <div className="symbol-helper-bar">
+            <div className="symbol-box-left">
+              <span className="symbol-box-tag">Epsilon (ε):</span>
+              <button
+                type="button"
+                className="epsilon-chip-btn"
+                onClick={() => handleInsertSymbol('ε')}
+                title="Click to insert ε at cursor position into editor"
+              >
+                <span className="epsilon-symbol">ε</span>
+                <span className="epsilon-label">Insert ε</span>
+              </button>
+              <button
+                type="button"
+                className={`copy-chip-btn ${copied ? 'copied' : ''}`}
+                onClick={() => handleCopySymbol('ε')}
+                title="Copy ε to clipboard to paste anywhere"
+              >
+                {copied ? '✓ Copied to clipboard!' : '📋 Copy ε'}
+              </button>
+            </div>
+            <div className="symbol-box-right">
+              <span>Not on keyboard? Click to insert/copy, or simply type <code className="mono-tag">eps</code></span>
+            </div>
+          </div>
+
           <textarea
+            ref={textareaRef}
             className="grammar-textarea"
             value={grammarText}
             onChange={e => onGrammarChange(e.target.value)}
