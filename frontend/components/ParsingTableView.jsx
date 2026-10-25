@@ -1,7 +1,7 @@
-import { END_MARKER } from '../constants.js';
-import { getTableTerminals, isLL1, getConflicts, diagnoseGrammarIssues } from '../parser/parsingTable.js';
+import { END_MARKER } from '../../backend/constants.js';
+import { getTableTerminals, isLL1, getConflicts, diagnoseGrammarIssues } from '../../backend/parsingTable.js';
 
-const ParsingTableView = ({ grammar, table, firstSets, followSets }) => {
+const ParsingTableView = ({ grammar, table, firstSets, followSets, onEliminateLR, onLeftFactor }) => {
   if (!grammar || !table) {
     return (
       <div className="empty-state fade-in">
@@ -41,7 +41,19 @@ const ParsingTableView = ({ grammar, table, firstSets, followSets }) => {
               <span className="icon">🔍</span>
               Conflict Analysis & Mathematical Limitations
             </h3>
-            <span className="badge badge-red">{conflicts.length} Table Conflict{conflicts.length === 1 ? '' : 's'}</span>
+            <div className="btn-group">
+              {issues.some(i => i.type.includes('Left Recursion')) && onEliminateLR && (
+                <button className="btn btn-primary btn-sm" onClick={onEliminateLR} title="Eliminate Left Recursion using General Method">
+                  🔄 Fix: Eliminate Left Recursion
+                </button>
+              )}
+              {issues.some(i => i.type.includes('Common Prefix')) && onLeftFactor && (
+                <button className="btn btn-primary btn-sm" onClick={onLeftFactor} title="Apply Left Factoring to remove common prefixes">
+                  🎯 Fix: Apply Left Factoring
+                </button>
+              )}
+              <span className="badge badge-red">{conflicts.length} Table Conflict{conflicts.length === 1 ? '' : 's'}</span>
+            </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -54,6 +66,16 @@ const ParsingTableView = ({ grammar, table, firstSets, followSets }) => {
                     <div className="alert-body" style={{ color: 'var(--text-secondary)' }}>
                       {issue.description}
                     </div>
+                    {issue.type.includes('Left Recursion') && onEliminateLR && (
+                      <button className="btn btn-green btn-sm" onClick={onEliminateLR} style={{ marginTop: '0.6rem' }}>
+                        🔄 Eliminate Left Recursion
+                      </button>
+                    )}
+                    {issue.type.includes('Common Prefix') && onLeftFactor && (
+                      <button className="btn btn-green btn-sm" onClick={onLeftFactor} style={{ marginTop: '0.6rem' }}>
+                        🎯 Apply Left Factoring
+                      </button>
+                    )}
                   </div>
                 </div>
               ))

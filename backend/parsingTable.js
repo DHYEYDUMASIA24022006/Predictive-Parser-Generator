@@ -1,4 +1,4 @@
-import { EPSILON, END_MARKER } from '../constants.js';
+import { EPSILON, END_MARKER } from './constants.js';
 import { computeFirstOfSequence } from './first.js';
 
 /**

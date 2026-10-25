@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { END_MARKER } from '../constants.js';
-import { tokenize } from '../parser/tokenizer.js';
-import { isLL1 } from '../parser/parsingTable.js';
+import { END_MARKER } from '../../backend/constants.js';
+import { tokenize } from '../../backend/tokenizer.js';
+import { isLL1 } from '../../backend/parsingTable.js';
 
 function getActionClass(action, isError, isAccept) {
   if (isError) return 'action-error';

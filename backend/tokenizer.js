@@ -1,4 +1,4 @@
-import { END_MARKER } from '../constants.js';
+import { END_MARKER } from './constants.js';
 
 /**
  * Tokenizes an input string into a list of terminal tokens.

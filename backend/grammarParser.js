@@ -1,4 +1,4 @@
-import { EPSILON, END_MARKER } from '../constants.js';
+import { EPSILON, END_MARKER } from './constants.js';
 
 /** Only 1 type of arrow is supported across the application: Unicode arrow → */
 export const ARROW = '→';

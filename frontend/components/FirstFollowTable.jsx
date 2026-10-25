@@ -1,4 +1,4 @@
-import { EPSILON, END_MARKER } from '../constants.js';
+import { EPSILON, END_MARKER } from '../../backend/constants.js';
 
 function sortedSet(s) {
   // Sort: ε last, $ last

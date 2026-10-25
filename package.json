@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node src/parser/__tests__/grammarTests.js"
+    "test": "node backend/__tests__/grammarTests.js"
   },
   "dependencies": {
     "react": "^19.2.8",

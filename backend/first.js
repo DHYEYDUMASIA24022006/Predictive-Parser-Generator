@@ -1,4 +1,4 @@
-import { EPSILON } from '../constants.js';
+import { EPSILON } from './constants.js';
 
 /**
  * Computes FIRST sets for all non-terminals in the grammar.
