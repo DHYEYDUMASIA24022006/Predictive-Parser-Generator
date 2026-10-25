@@ -9,12 +9,15 @@ const GrammarEditor = ({
   grammar,
   errors,
   onParse,
+  onEliminateLR,
+  onLeftFactor,
 }) => {
   const [showExamples, setShowExamples] = useState(false);
   const [copiedEps, setCopiedEps] = useState(false);
   const [copiedArrow, setCopiedArrow] = useState(false);
   const [copiedSample, setCopiedSample] = useState(false);
   const [loadNotice, setLoadNotice] = useState(false);
+  const [transformNotice, setTransformNotice] = useState(null);
   const textareaRef = useRef(null);
 
   /**
@@ -67,6 +70,40 @@ const GrammarEditor = ({
     }
   };
 
+  const handleTriggerEliminateLR = () => {
+    if (!onEliminateLR) return;
+    const res = onEliminateLR();
+    if (res.transformed) {
+      setTransformNotice({
+        type: 'success',
+        message: `✓ Left recursion eliminated! Added ${res.changes.map(c => c.newNT).join(', ')}. Grammar parsed successfully.`,
+      });
+    } else {
+      setTransformNotice({
+        type: 'info',
+        message: 'ℹ️ No left recursion found in current grammar.',
+      });
+    }
+    setTimeout(() => setTransformNotice(null), 4000);
+  };
+
+  const handleTriggerLeftFactor = () => {
+    if (!onLeftFactor) return;
+    const res = onLeftFactor();
+    if (res.transformed) {
+      setTransformNotice({
+        type: 'success',
+        message: `✓ Common prefixes left-factored! Added ${res.changes.map(c => c.newNT).join(', ')}. Grammar parsed successfully.`,
+      });
+    } else {
+      setTransformNotice({
+        type: 'info',
+        message: 'ℹ️ No common prefixes requiring left factoring found.',
+      });
+    }
+    setTimeout(() => setTransformNotice(null), 4000);
+  };
+
   return (
     <div className="section fade-in">
       <div className="card">
@@ -82,11 +119,36 @@ const GrammarEditor = ({
             >
               📚 {showExamples ? 'Hide Examples' : 'Load Example'}
             </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={handleTriggerEliminateLR}
+              title="Eliminate Left Recursion (General Method)"
+            >
+              🔄 Eliminate Left Recursion
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={handleTriggerLeftFactor}
+              title="Apply Left Factoring (Remove Common Prefixes)"
+            >
+              🎯 Left Factor
+            </button>
             <button className="btn btn-primary" onClick={onParse}>
               ⚡ Parse Grammar
             </button>
           </div>
         </div>
+
+        {transformNotice && (
+          <div className={`alert ${transformNotice.type === 'success' ? 'alert-success' : 'alert-info'}`} style={{ marginBottom: '1rem' }}>
+            <span className="alert-icon">{transformNotice.type === 'success' ? '✅' : 'ℹ️'}</span>
+            <div className="alert-content">
+              <div className="alert-body">{transformNotice.message}</div>
+            </div>
+          </div>
+        )}
 
         {showExamples && (
           <div className="example-picker" style={{ marginBottom: '1.25rem' }}>

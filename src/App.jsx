@@ -13,6 +13,7 @@ import { buildParsingTable } from './parser/parsingTable.js';
 import { runPredictiveParser } from './parser/predictiveParser.js';
 import { tokenize } from './parser/tokenizer.js';
 import { exampleGrammars } from './data/exampleGrammars.js';
+import { eliminateLeftRecursion, applyLeftFactoring } from './parser/transformations.js';
 
 const TABS = [
   { id: 0, label: 'Grammar', icon: '📝' },
@@ -82,6 +83,48 @@ const App = () => {
     setActiveTab(3);
   }, [grammar, parsingTable, inputString]);
 
+  /** Eliminate Left Recursion automatically and update grammar pipeline */
+  const handleEliminateLR = useCallback(() => {
+    const result = eliminateLeftRecursion(grammarText);
+    if (result.transformed) {
+      setGrammarText(result.text);
+      const parseRes = parseGrammar(result.text);
+      setGrammarErrors(parseRes.errors);
+      if (parseRes.grammar) {
+        setGrammar(parseRes.grammar);
+        const first = computeFirst(parseRes.grammar);
+        setFirstSets(first);
+        const follow = computeFollow(parseRes.grammar, first);
+        setFollowSets(follow);
+        const table = buildParsingTable(parseRes.grammar, first, follow);
+        setParsingTable(table);
+        setParseResult(null);
+      }
+    }
+    return result;
+  }, [grammarText]);
+
+  /** Apply Left Factoring automatically and update grammar pipeline */
+  const handleLeftFactor = useCallback(() => {
+    const result = applyLeftFactoring(grammarText);
+    if (result.transformed) {
+      setGrammarText(result.text);
+      const parseRes = parseGrammar(result.text);
+      setGrammarErrors(parseRes.errors);
+      if (parseRes.grammar) {
+        setGrammar(parseRes.grammar);
+        const first = computeFirst(parseRes.grammar);
+        setFirstSets(first);
+        const follow = computeFollow(parseRes.grammar, first);
+        setFollowSets(follow);
+        const table = buildParsingTable(parseRes.grammar, first, follow);
+        setParsingTable(table);
+        setParseResult(null);
+      }
+    }
+    return result;
+  }, [grammarText]);
+
   const grammarReady = grammar !== null;
 
   return (
@@ -133,6 +176,8 @@ const App = () => {
               grammar={grammar}
               errors={grammarErrors}
               onParse={handleParseGrammar}
+              onEliminateLR={handleEliminateLR}
+              onLeftFactor={handleLeftFactor}
             />
           )}
           {activeTab === 1 && (
@@ -148,6 +193,8 @@ const App = () => {
               table={parsingTable}
               firstSets={firstSets}
               followSets={followSets}
+              onEliminateLR={handleEliminateLR}
+              onLeftFactor={handleLeftFactor}
             />
           )}
           {activeTab === 3 && (

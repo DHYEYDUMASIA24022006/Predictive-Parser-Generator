@@ -4,6 +4,7 @@ import { computeFollow } from '../follow.js';
 import { buildParsingTable, isLL1 } from '../parsingTable.js';
 import { tokenize } from '../tokenizer.js';
 import { runPredictiveParser } from '../predictiveParser.js';
+import { eliminateLeftRecursion, applyLeftFactoring } from '../transformations.js';
 
 console.log('Testing grammar parsing and algorithms...\n');
 
@@ -211,6 +212,34 @@ console.log('\nTest 13: Predictive parser execution on sample grammar (S → aA 
   assert(res4.accepted === false, 'Invalid input "a b" is rejected with clear error');
 }
 
+// Case 14: Automatic Left Recursion Elimination (Image 1 - General Method)
+console.log('\nTest 14: Immediate Left Recursion Elimination (General Method)');
+{
+  const lrGrammar = `E → E + T | T\nT → T * F | F\nF → ( E ) | id`;
+  const { transformed, text } = eliminateLeftRecursion(lrGrammar);
+  assert(transformed === true, 'Left recursion eliminated successfully');
+
+  const { grammar: cleanG } = parseGrammar(text);
+  assert(cleanG?.nonTerminals.has("E'") && cleanG?.nonTerminals.has("T'"), "E' and T' created");
+  const first = computeFirst(cleanG);
+  const follow = computeFollow(cleanG, first);
+  const table = buildParsingTable(cleanG, first, follow);
+  assert(isLL1(table), 'Transformed grammar is now LL(1) with 0 conflicts!');
+}
+
+// Case 15: Automatic Left Factoring (Image 2)
+console.log('\nTest 15: Automatic Left Factoring (Common Prefixes)');
+{
+  const lfGrammar = `S → i E t S | i E t S e S | a\nE → b`;
+  const { transformed, text } = applyLeftFactoring(lfGrammar);
+  assert(transformed === true, 'Common prefix factored successfully');
+
+  const { grammar: cleanG } = parseGrammar(text);
+  assert(cleanG?.nonTerminals.has("S'"), "S' created for factored alternatives");
+  assert(cleanG?.productionMap.get("S'").length === 2, "S' contains remainder alternatives");
+}
+
 console.log(`\nTests completed: ${passed} passed, ${failed} failed.`);
 if (failed > 0) process.exit(1);
+
 
