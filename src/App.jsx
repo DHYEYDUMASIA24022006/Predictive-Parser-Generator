@@ -75,7 +75,7 @@ const App = () => {
   /** Run the predictive parser on current input */
   const handleRunParser = useCallback(() => {
     if (!grammar || !parsingTable) return;
-    const tokens = tokenize(inputString);
+    const tokens = tokenize(inputString, grammar.terminals);
     const result = runPredictiveParser(grammar, parsingTable, tokens);
     setParseResult(result);
     // Auto-navigate to Parser tab
@@ -146,6 +146,8 @@ const App = () => {
             <ParsingTableView
               grammar={grammar}
               table={parsingTable}
+              firstSets={firstSets}
+              followSets={followSets}
             />
           )}
           {activeTab === 3 && (

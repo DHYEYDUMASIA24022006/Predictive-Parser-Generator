@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { END_MARKER } from '../constants.js';
 import { tokenize } from '../parser/tokenizer.js';
+import { isLL1 } from '../parser/parsingTable.js';
 
 function getActionClass(action, isError, isAccept) {
   if (isError) return 'action-error';
@@ -50,10 +51,18 @@ const ParserSteps = ({
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [autoPlay, setAutoPlay] = useState(false);
+  const [prevResult, setPrevResult] = useState(parseResult);
   const autoPlayRef = useRef(null);
   const activeRowRef = useRef(null);
 
   const [copiedEps, setCopiedEps] = useState(false);
+
+  // Synchronize state when parseResult changes
+  if (prevResult !== parseResult) {
+    setPrevResult(parseResult);
+    setCurrentStep(0);
+    setAutoPlay(false);
+  }
 
   const handleCopyEpsilon = () => {
     if (navigator.clipboard) {
@@ -65,11 +74,7 @@ const ParserSteps = ({
 
   const steps = parseResult?.steps ?? [];
   const totalSteps = steps.length;
-
-  useEffect(() => {
-    setCurrentStep(0);
-    setAutoPlay(false);
-  }, [parseResult]);
+  const grammarIsLL1 = table ? isLL1(table) : true;
 
   useEffect(() => {
     if (autoPlay) {
@@ -94,7 +99,7 @@ const ParserSteps = ({
     }
   }, [currentStep]);
 
-  const tokens = tokenize(inputString);
+  const tokens = tokenize(inputString, grammar?.terminals);
 
   const currentStepData = steps[currentStep];
 
@@ -145,6 +150,19 @@ const ParserSteps = ({
           </div>
         </div>
       </div>
+
+      {/* Notice if grammar is not LL(1) */}
+      {!grammarIsLL1 && (
+        <div className="alert alert-warning">
+          <span className="alert-icon">⚠️</span>
+          <div className="alert-content">
+            <div className="alert-title">Grammar is NOT LL(1)</div>
+            <div className="alert-body">
+              This grammar has conflicts in its parsing table. When multiple productions exist for a cell, the predictive parser defaults to the first production, which may lead to mismatch errors or infinite recursion.
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Parse error / success banner */}
       {parseResult && (

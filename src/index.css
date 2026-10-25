@@ -846,6 +846,168 @@ td.empty-cell {
   color: var(--green);
 }
 
+.symbol-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-light);
+  margin: 0 0.2rem;
+}
+
+.arrow-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.28rem 0.75rem;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.arrow-chip-btn:hover {
+  background: #2b6cb0;
+  box-shadow: 0 0 10px rgba(88, 166, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.arrow-symbol {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.arrow-label {
+  font-size: 0.78rem;
+  color: var(--text-primary);
+}
+
+/* ===== Sample Grammar Card Above Input ===== */
+.sample-grammar-container {
+  background: linear-gradient(135deg, rgba(31, 75, 130, 0.12), rgba(22, 27, 34, 0.85));
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.sample-grammar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sample-grammar-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sample-grammar-heading {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sample-grammar-box {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.95rem;
+  margin-bottom: 0.65rem;
+}
+
+.sample-grammar-code {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.sample-nt {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.sample-arrow {
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 0 0.15rem;
+}
+
+.sample-term {
+  color: var(--orange);
+  font-weight: 600;
+}
+
+.sample-pipe {
+  color: var(--text-muted);
+  padding: 0 0.25rem;
+}
+
+.sample-eps {
+  color: var(--purple);
+  font-weight: 700;
+}
+
+.sample-grammar-instructions {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.code-chip {
+  font-family: var(--font-mono);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-light);
+  padding: 0.08rem 0.35rem;
+  border-radius: 4px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sample-loaded-toast {
+  margin-top: 0.6rem;
+  padding: 0.4rem 0.75rem;
+  background: var(--green-dim);
+  border: 1px solid var(--green);
+  border-radius: var(--radius-sm);
+  color: var(--green);
+  font-size: 0.8rem;
+}
+
+/* ===== Conflict Diagnostics Details ===== */
+.conflict-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.45rem 0.75rem;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(248, 81, 73, 0.25);
+  font-size: 0.82rem;
+}
+
+.conflict-cell-tag {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--yellow);
+  background: var(--yellow-dim);
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid rgba(210, 153, 34, 0.4);
+}
+
 .symbol-box-right {
   display: flex;
   align-items: center;

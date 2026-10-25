@@ -89,3 +89,79 @@ export function getTableTerminals(table, allTerminals) {
     return a.localeCompare(b);
   });
 }
+
+/** Collect all conflict cells and explanations */
+export function getConflicts(table) {
+  const conflicts = [];
+  for (const [nt, row] of table.entries()) {
+    for (const [term, entries] of row.entries()) {
+      if (entries.length > 1 || entries[0]?.conflict) {
+        conflicts.push({
+          nt,
+          terminal: term,
+          productions: entries.map(e => e.production),
+        });
+      }
+    }
+  }
+  return conflicts;
+}
+
+/**
+ * Diagnoses why a grammar has conflicts in an LL(1) parser.
+ * Identifies:
+ * 1. Left recursion
+ * 2. Common prefixes (requires left factoring)
+ * 3. FIRST/FOLLOW set intersection
+ */
+export function diagnoseGrammarIssues(grammar, table, firstSets, followSets) {
+  const issues = [];
+
+  // 1. Direct left recursion check: A -> A α
+  for (const prod of grammar.productions) {
+    if (prod.rhs.length > 0 && prod.rhs[0] === prod.lhs) {
+      issues.push({
+        type: 'Left Recursion',
+        title: `Left Recursion in '${prod.lhs}'`,
+        description: `Production '${prod.lhs} → ${prod.rhs.join(' ')}' is directly left-recursive. LL(1) parsers cannot parse left-recursive grammars directly because expanding '${prod.lhs}' creates an infinite expansion or multiple table entries. Left recursion elimination is required.`,
+      });
+    }
+  }
+
+  // 2. Common prefixes check among alternatives of the same non-terminal
+  for (const [lhs, alts] of grammar.productionMap.entries()) {
+    if (alts.length <= 1) continue;
+    for (let i = 0; i < alts.length; i++) {
+      for (let j = i + 1; j < alts.length; j++) {
+        const firstI = computeFirstOfSequence(alts[i], firstSets);
+        const firstJ = computeFirstOfSequence(alts[j], firstSets);
+        const intersection = [...firstI].filter(x => x !== EPSILON && firstJ.has(x));
+        if (intersection.length > 0) {
+          issues.push({
+            type: 'Common Prefix / FIRST Conflict',
+            title: `Common Prefix in '${lhs}'`,
+            description: `Alternatives '${lhs} → ${alts[i].join(' ')}' and '${lhs} → ${alts[j].join(' ')}' both derive terminal '${intersection.join(', ')}'. The parser cannot determine which alternative to predict. Left factoring is required.`,
+          });
+        }
+      }
+    }
+  }
+
+  // 3. FIRST/FOLLOW intersection check for nullable non-terminals
+  for (const nt of grammar.nonTerminals) {
+    const first = firstSets.get(nt) ?? new Set();
+    if (first.has(EPSILON)) {
+      const follow = followSets.get(nt) ?? new Set();
+      const overlap = [...first].filter(x => x !== EPSILON && follow.has(x));
+      if (overlap.length > 0) {
+        issues.push({
+          type: 'FIRST/FOLLOW Conflict',
+          title: `FIRST/FOLLOW Overlap in '${nt}'`,
+          description: `Non-terminal '${nt}' can derive ε, and terminal '${overlap.join(', ')}' belongs to both FIRST(${nt}) and FOLLOW(${nt}). The parser cannot decide whether to expand or derive ε when seeing '${overlap.join(', ')}'.`,
+        });
+      }
+    }
+  }
+
+  return issues;
+}

@@ -7,7 +7,6 @@ const SVG_PADDING = 40;
 
 function computeLayout(root) {
   // Compute leaf positions first, then center parents over children
-  let leafIndex = 0;
   const positions = new Map();
   const edges = [];
 
@@ -21,7 +20,6 @@ function computeLayout(root) {
 
     if (node.children.length === 0) {
       const x = SVG_PADDING + startLeaf * H_GAP;
-      leafIndex++;
       positions.set(node.id, { x, y });
       return { center: x };
     }
@@ -75,10 +73,10 @@ function getNodeColor(node) {
   return { fill: '#1f4b82', stroke: '#58a6ff', textColor: '#a5ccff' };
 }
 
-// Text that fits in a circle — truncate if too long
+// Text that fits in a circle — truncate only if excessively long
 function fitLabel(label) {
-  if (label.length <= 4) return label;
-  return label.slice(0, 3) + '…';
+  if (label.length <= 6) return label;
+  return label.slice(0, 5) + '…';
 }
 
 // Render all nodes recursively
@@ -106,6 +104,7 @@ function renderTree(root, layout) {
     if (!pos) return;
     const { fill, stroke, textColor } = getNodeColor(node);
     const label = node.symbol;
+    const displayLabel = fitLabel(label);
 
     elements.push(
       <g key={node.id} transform={`translate(${pos.x},${pos.y})`}>
@@ -119,11 +118,11 @@ function renderTree(root, layout) {
           textAnchor="middle"
           dominantBaseline="central"
           fill={textColor}
-          fontSize={label.length <= 2 ? 13 : label.length <= 4 ? 11 : 9}
+          fontSize={displayLabel.length <= 2 ? 13 : displayLabel.length <= 4 ? 11 : displayLabel.length <= 6 ? 9 : 8}
           fontFamily="'JetBrains Mono', monospace"
           fontWeight={600}
         >
-          {label.length > 5 ? fitLabel(label) : label}
+          {displayLabel}
         </text>
       </g>
     );

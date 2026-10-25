@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react';
 import { exampleGrammars } from '../data/exampleGrammars.js';
 
+const SAMPLE_GRAMMAR_TEXT = `S → aA | b\nA → aS | ε`;
+
 const GrammarEditor = ({
   grammarText,
   onGrammarChange,
@@ -9,13 +11,20 @@ const GrammarEditor = ({
   onParse,
 }) => {
   const [showExamples, setShowExamples] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copiedEps, setCopiedEps] = useState(false);
+  const [copiedArrow, setCopiedArrow] = useState(false);
+  const [copiedSample, setCopiedSample] = useState(false);
+  const [loadNotice, setLoadNotice] = useState(false);
   const textareaRef = useRef(null);
 
+  /**
+   * Inserts a symbol at the current cursor position or replaces current selection.
+   * Preserves text before and after, then positions cursor right after the inserted text.
+   */
   const handleInsertSymbol = (sym) => {
     const textarea = textareaRef.current;
     if (!textarea) {
-      onGrammarChange(grammarText + ' ' + sym);
+      onGrammarChange(grammarText + sym);
       return;
     }
     const start = textarea.selectionStart ?? grammarText.length;
@@ -28,12 +37,34 @@ const GrammarEditor = ({
     }, 0);
   };
 
-  const handleCopySymbol = (sym) => {
+  const handleCopySymbol = (sym, type) => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(sym);
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (type === 'epsilon') {
+      setCopiedEps(true);
+      setTimeout(() => setCopiedEps(false), 2000);
+    } else if (type === 'arrow') {
+      setCopiedArrow(true);
+      setTimeout(() => setCopiedArrow(false), 2000);
+    }
+  };
+
+  const handleCopySample = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(SAMPLE_GRAMMAR_TEXT);
+    }
+    setCopiedSample(true);
+    setTimeout(() => setCopiedSample(false), 2000);
+  };
+
+  const handleLoadSample = () => {
+    onGrammarChange(SAMPLE_GRAMMAR_TEXT);
+    setLoadNotice(true);
+    setTimeout(() => setLoadNotice(false), 3000);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
   };
 
   return (
@@ -81,32 +112,102 @@ const GrammarEditor = ({
           </div>
         )}
 
-        <div>
-          <label className="input-label">Productions (one per line, use | for alternatives, ε for epsilon)</label>
+        {/* 1. Sample Grammar Display Above Input Box */}
+        <div className="sample-grammar-container">
+          <div className="sample-grammar-header">
+            <div className="sample-grammar-title-group">
+              <span className="badge badge-blue">Syntax Guide</span>
+              <span className="sample-grammar-heading">Example Grammar</span>
+            </div>
+            <div className="btn-group">
+              <button
+                type="button"
+                className={`btn btn-secondary btn-sm ${copiedSample ? 'copied' : ''}`}
+                onClick={handleCopySample}
+                title="Copy sample grammar to clipboard"
+              >
+                {copiedSample ? '✓ Copied' : '📋 Copy Example'}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={handleLoadSample}
+                title="Load this example into the grammar editor"
+              >
+                📥 Load Example
+              </button>
+            </div>
+          </div>
 
+          <div className="sample-grammar-box">
+            <div className="sample-grammar-code">
+              <div><span className="sample-nt">S</span> <span className="sample-arrow">→</span> <span className="sample-term">a</span><span className="sample-nt">A</span> <span className="sample-pipe">|</span> <span className="sample-term">b</span></div>
+              <div><span className="sample-nt">A</span> <span className="sample-arrow">→</span> <span className="sample-term">a</span><span className="sample-nt">S</span> <span className="sample-pipe">|</span> <span className="sample-eps">ε</span></div>
+            </div>
+          </div>
+
+          <div className="sample-grammar-instructions">
+            Enter one production per line. Use <span className="code-chip">→</span> to separate the left-hand side from the right-hand side. Use <span className="code-chip">|</span> to specify multiple alternatives. Use <span className="code-chip">ε</span> for an empty production.
+          </div>
+
+          {loadNotice && (
+            <div className="sample-loaded-toast">
+              ✓ Sample grammar loaded into editor! Click <strong>Parse Grammar</strong> to analyze.
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="input-label" style={{ marginTop: '1rem' }}>
+            Productions (one per line, use | for alternatives, ε for epsilon)
+          </label>
+
+          {/* 2. Symbol Helper Bar with Insert Arrow and Insert Epsilon */}
           <div className="symbol-helper-bar">
             <div className="symbol-box-left">
-              <span className="symbol-box-tag">Epsilon (ε):</span>
+              {/* Arrow insertion control */}
+              <button
+                type="button"
+                className="arrow-chip-btn"
+                onClick={() => handleInsertSymbol('→')}
+                title="Insert production arrow (→) at cursor position into editor"
+              >
+                <span className="arrow-symbol">→</span>
+                <span className="arrow-label">Insert Arrow (→)</span>
+              </button>
+              <button
+                type="button"
+                className={`copy-chip-btn ${copiedArrow ? 'copied' : ''}`}
+                onClick={() => handleCopySymbol('→', 'arrow')}
+                title="Copy → to clipboard"
+              >
+                {copiedArrow ? '✓ Copied →' : '📋 Copy →'}
+              </button>
+
+              <span className="symbol-divider" />
+
+              {/* Epsilon insertion control */}
               <button
                 type="button"
                 className="epsilon-chip-btn"
                 onClick={() => handleInsertSymbol('ε')}
-                title="Click to insert ε at cursor position into editor"
+                title="Insert ε at cursor position into editor"
               >
                 <span className="epsilon-symbol">ε</span>
                 <span className="epsilon-label">Insert ε</span>
               </button>
               <button
                 type="button"
-                className={`copy-chip-btn ${copied ? 'copied' : ''}`}
-                onClick={() => handleCopySymbol('ε')}
-                title="Copy ε to clipboard to paste anywhere"
+                className={`copy-chip-btn ${copiedEps ? 'copied' : ''}`}
+                onClick={() => handleCopySymbol('ε', 'epsilon')}
+                title="Copy ε to clipboard"
               >
-                {copied ? '✓ Copied to clipboard!' : '📋 Copy ε'}
+                {copiedEps ? '✓ Copied ε' : '📋 Copy ε'}
               </button>
             </div>
+
             <div className="symbol-box-right">
-              <span>Not on keyboard? Click to insert/copy, or simply type <code className="mono-tag">eps</code></span>
+              <span>Required Arrow: <code className="mono-tag">→</code> | Epsilon: <code className="mono-tag">ε</code> <code className="mono-tag">eps</code> <code className="mono-tag">epsilon</code></span>
             </div>
           </div>
 
@@ -116,10 +217,11 @@ const GrammarEditor = ({
             value={grammarText}
             onChange={e => onGrammarChange(e.target.value)}
             spellCheck={false}
-            placeholder={"E -> T E'\nE' -> + T E' | ε\nT -> F T'\nT' -> * F T' | ε\nF -> ( E ) | id"}
+            placeholder={"S → aA | b\nA → aS | ε"}
           />
         </div>
 
+        {/* Errors display */}
         {errors && errors.length > 0 && (
           <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {errors.map((err, i) => (
@@ -128,6 +230,21 @@ const GrammarEditor = ({
                 <div className="alert-content">
                   {err.line > 0 && <div className="alert-title">Line {err.line}</div>}
                   <div className="alert-body">{err.message}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Warnings display (e.g. unreachable non-terminals) */}
+        {grammar?.warnings && grammar.warnings.length > 0 && (
+          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {grammar.warnings.map((warn, i) => (
+              <div key={i} className="alert alert-warning">
+                <span className="alert-icon">ℹ️</span>
+                <div className="alert-content">
+                  <div className="alert-title">Grammar Notice</div>
+                  <div className="alert-body">{warn}</div>
                 </div>
               </div>
             ))}
