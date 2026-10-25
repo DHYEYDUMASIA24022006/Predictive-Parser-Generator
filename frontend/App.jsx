@@ -6,14 +6,14 @@ import ParsingTableView from './components/ParsingTableView.jsx';
 import ParserSteps from './components/ParserSteps.jsx';
 import ParseTreeView from './components/ParseTreeView.jsx';
 
-import { parseGrammar } from './parser/grammarParser.js';
-import { computeFirst } from './parser/first.js';
-import { computeFollow } from './parser/follow.js';
-import { buildParsingTable } from './parser/parsingTable.js';
-import { runPredictiveParser } from './parser/predictiveParser.js';
-import { tokenize } from './parser/tokenizer.js';
+import { parseGrammar } from '../backend/grammarParser.js';
+import { computeFirst } from '../backend/first.js';
+import { computeFollow } from '../backend/follow.js';
+import { buildParsingTable } from '../backend/parsingTable.js';
+import { runPredictiveParser } from '../backend/predictiveParser.js';
+import { tokenize } from '../backend/tokenizer.js';
 import { exampleGrammars } from './data/exampleGrammars.js';
-import { eliminateLeftRecursion, applyLeftFactoring } from './parser/transformations.js';
+import { eliminateLeftRecursion, applyLeftFactoring } from '../backend/transformations.js';
 
 const TABS = [
   { id: 0, label: 'Grammar', icon: '📝' },

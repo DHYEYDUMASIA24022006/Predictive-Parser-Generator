@@ -1,4 +1,4 @@
-import { EPSILON } from '../constants.js';
+import { EPSILON } from './constants.js';
 import { parseGrammar } from './grammarParser.js';
 
 /**

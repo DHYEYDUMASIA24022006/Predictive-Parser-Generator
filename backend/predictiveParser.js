@@ -1,4 +1,4 @@
-import { EPSILON, END_MARKER } from '../constants.js';
+import { EPSILON, END_MARKER } from './constants.js';
 import { createNode, resetNodeCounter } from './parseTree.js';
 import { formatProduction } from './grammarParser.js';
 

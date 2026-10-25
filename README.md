@@ -24,25 +24,33 @@ Open `http://localhost:5173` in your browser.
 ## 🏗️ Project Structure
 
 ```
-src/
+backend/                     # Core parsing algorithms & calculative engine
 ├── constants.js            # Core constants (EPSILON, END_MARKER)
-├── parser/
-│   ├── grammarParser.js    # Grammar text → Grammar object
-│   ├── first.js            # FIRST set algorithm
-│   ├── follow.js           # FOLLOW set algorithm
-│   ├── parsingTable.js     # LL(1) parsing table generator
-│   ├── predictiveParser.js # Stack-based LL(1) parser engine
-│   ├── tokenizer.js        # Input string tokenizer
-│   └── parseTree.js        # Parse tree node creation & layout
+├── grammarParser.js        # Grammar text → Grammar object
+├── first.js                # FIRST set algorithm
+├── follow.js               # FOLLOW set algorithm
+├── parsingTable.js         # LL(1) parsing table generator & diagnostics
+├── predictiveParser.js     # Stack-based LL(1) parser engine
+├── tokenizer.js            # Input string tokenizer
+├── transformations.js      # Left recursion elimination & left factoring
+├── parseTree.js            # Parse tree node creation & layout
+├── index.js                # Unified backend export module
+└── __tests__/
+    └── grammarTests.js     # Unit & algorithm test suite
+
+frontend/                    # UI presentation layer
+├── App.jsx                 # Main application component & pipeline coordinator
+├── main.jsx                # Frontend React application entry point
+├── index.css               # Design system & responsive styles
 ├── data/
 │   └── exampleGrammars.js  # Pre-loaded example grammars
 └── components/
-    ├── Pipeline.jsx         # Top pipeline progress indicator
-    ├── GrammarEditor.jsx    # Grammar input tab
-    ├── FirstFollowTable.jsx # FIRST & FOLLOW display tab
-    ├── ParsingTableView.jsx # LL(1) table display tab
-    ├── ParserSteps.jsx      # Step-by-step parser tab
-    └── ParseTreeView.jsx    # Parse tree visualization tab
+    ├── Pipeline.jsx        # Top pipeline progress indicator
+    ├── GrammarEditor.jsx   # Grammar input & transformation tab
+    ├── FirstFollowTable.jsx# FIRST & FOLLOW display tab
+    ├── ParsingTableView.jsx# LL(1) table display tab
+    ├── ParserSteps.jsx     # Step-by-step parser tab
+    └── ParseTreeView.jsx   # Parse tree visualization tab
 ```
 
 ## 🔬 Algorithms Explained

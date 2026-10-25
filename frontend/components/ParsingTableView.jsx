@@ -1,5 +1,5 @@
-import { END_MARKER } from '../constants.js';
-import { getTableTerminals, isLL1, getConflicts, diagnoseGrammarIssues } from '../parser/parsingTable.js';
+import { END_MARKER } from '../../backend/constants.js';
+import { getTableTerminals, isLL1, getConflicts, diagnoseGrammarIssues } from '../../backend/parsingTable.js';
 
 const ParsingTableView = ({ grammar, table, firstSets, followSets, onEliminateLR, onLeftFactor }) => {
   if (!grammar || !table) {
