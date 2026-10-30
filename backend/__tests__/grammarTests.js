@@ -239,6 +239,23 @@ console.log('\nTest 15: Automatic Left Factoring (Common Prefixes)');
   assert(cleanG?.productionMap.get("S'").length === 2, "S' contains remainder alternatives");
 }
 
+// Case 16: Preservation of original grammar text during transformation
+console.log('\nTest 16: Preservation of original grammar text during transformation');
+{
+  const originalInput = `E → E + T | T\nT → T * F | F\nF → ( E ) | id`;
+  const copyOfInput = originalInput;
+  const { transformed, text: revisedText } = eliminateLeftRecursion(originalInput);
+  assert(transformed === true, 'Transformation succeeded');
+  assert(originalInput === copyOfInput, 'Original input string must remain intact and unchanged');
+  assert(revisedText !== originalInput, 'Revised text is distinct and contains eliminated recursion');
+
+  // Verify revised text can be parsed and used for LL(1) table while original is kept
+  const { grammar: originalG } = parseGrammar(originalInput);
+  const { grammar: revisedG } = parseGrammar(revisedText);
+  assert(originalG.productions.length === 5, 'Original grammar retains its 5 productions');
+  assert(revisedG.productions.length > 5, 'Revised grammar has transformed productions');
+}
+
 console.log(`\nTests completed: ${passed} passed, ${failed} failed.`);
 if (failed > 0) process.exit(1);
 

@@ -7,10 +7,12 @@ const GrammarEditor = ({
   grammarText,
   onGrammarChange,
   grammar,
+  revisedGrammarText,
   errors,
   onParse,
   onEliminateLR,
   onLeftFactor,
+  onNavigateToParsingTable,
 }) => {
   const [showExamples, setShowExamples] = useState(false);
   const [copiedEps, setCopiedEps] = useState(false);
@@ -76,7 +78,7 @@ const GrammarEditor = ({
     if (res.transformed) {
       setTransformNotice({
         type: 'success',
-        message: `✓ Left recursion eliminated! Added ${res.changes.map(c => c.newNT).join(', ')}. Grammar parsed successfully.`,
+        message: `✓ Left recursion eliminated! Added ${res.changes.map(c => c.newNT).join(', ')}. Original grammar is retained in this input box. View the revised grammar in the Parsing Table tab.`,
       });
     } else {
       setTransformNotice({
@@ -84,7 +86,7 @@ const GrammarEditor = ({
         message: 'ℹ️ No left recursion found in current grammar.',
       });
     }
-    setTimeout(() => setTransformNotice(null), 4000);
+    setTimeout(() => setTransformNotice(null), 5000);
   };
 
   const handleTriggerLeftFactor = () => {
@@ -93,7 +95,7 @@ const GrammarEditor = ({
     if (res.transformed) {
       setTransformNotice({
         type: 'success',
-        message: `✓ Common prefixes left-factored! Added ${res.changes.map(c => c.newNT).join(', ')}. Grammar parsed successfully.`,
+        message: `✓ Common prefixes left-factored! Added ${res.changes.map(c => c.newNT).join(', ')}. Original grammar is retained in this input box. View the revised grammar in the Parsing Table tab.`,
       });
     } else {
       setTransformNotice({
@@ -101,7 +103,7 @@ const GrammarEditor = ({
         message: 'ℹ️ No common prefixes requiring left factoring found.',
       });
     }
-    setTimeout(() => setTransformNotice(null), 4000);
+    setTimeout(() => setTransformNotice(null), 5000);
   };
 
   return (
@@ -146,6 +148,39 @@ const GrammarEditor = ({
             <span className="alert-icon">{transformNotice.type === 'success' ? '✅' : 'ℹ️'}</span>
             <div className="alert-content">
               <div className="alert-body">{transformNotice.message}</div>
+            </div>
+          </div>
+        )}
+
+        {revisedGrammarText && (
+          <div className="alert alert-info" style={{ marginBottom: '1rem' }}>
+            <span className="alert-icon">💡</span>
+            <div className="alert-content">
+              <div className="alert-title">Original Grammar Preserved in Input Box</div>
+              <div className="alert-body">
+                Grammar transformations have been applied. Your original grammar remains intact here in the editor, and the transformed LL(1) grammar is displayed in the{' '}
+                {onNavigateToParsingTable ? (
+                  <button
+                    type="button"
+                    onClick={onNavigateToParsingTable}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--accent)',
+                      textDecoration: 'underline',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      padding: 0,
+                      font: 'inherit',
+                    }}
+                  >
+                    Parsing Table tab →
+                  </button>
+                ) : (
+                  <strong>Parsing Table tab</strong>
+                )}
+                .
+              </div>
             </div>
           </div>
         )}
