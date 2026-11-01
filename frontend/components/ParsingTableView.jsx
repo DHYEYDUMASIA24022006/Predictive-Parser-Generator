@@ -1,7 +1,71 @@
+import { useState } from 'react';
 import { END_MARKER } from '../../backend/constants.js';
 import { getTableTerminals, isLL1, getConflicts, diagnoseGrammarIssues } from '../../backend/parsingTable.js';
 
-const ParsingTableView = ({ grammar, table, firstSets, followSets, onEliminateLR, onLeftFactor }) => {
+const ParsingTableView = ({
+  grammar,
+  table,
+  firstSets,
+  followSets,
+  onEliminateLR,
+  onLeftFactor,
+  revisedGrammarText,
+  transformations = [],
+  onRevertOriginal,
+  onApplyRevisedToEditor,
+}) => {
+  const [copiedRevised, setCopiedRevised] = useState(false);
+
+  const handleCopyRevised = () => {
+    if (navigator.clipboard && revisedGrammarText) {
+      navigator.clipboard.writeText(revisedGrammarText);
+      setCopiedRevised(true);
+      setTimeout(() => setCopiedRevised(false), 2000);
+    }
+  };
+
+  const renderRevisedLine = (line, idx) => {
+    const arrowMatch = line.match(/^([^→-]+)(?:→|->)(.*)$/);
+    if (!arrowMatch) {
+      return (
+        <div key={idx} className="revised-code-line">
+          {line}
+        </div>
+      );
+    }
+    const lhs = arrowMatch[1].trim();
+    const rawRhs = arrowMatch[2].trim();
+    const alternatives = rawRhs.split('|').map(alt => alt.trim());
+
+    return (
+      <div key={idx} className="revised-code-line">
+        <span className="sample-nt">{lhs}</span>
+        <span className="sample-arrow"> → </span>
+        <span className="revised-rhs-group">
+          {alternatives.map((alt, altIdx) => {
+            const symbols = alt.split(/\s+/).filter(Boolean);
+            return (
+              <span key={altIdx}>
+                {altIdx > 0 && <span className="sample-pipe"> | </span>}
+                {symbols.map((sym, symIdx) => {
+                  const isNt = grammar?.nonTerminals?.has(sym);
+                  const isEps = sym === 'ε' || sym === 'eps' || sym === 'epsilon';
+                  const cls = isEps ? 'sample-eps' : isNt ? 'sample-nt' : 'sample-term';
+                  return (
+                    <span key={symIdx}>
+                      {symIdx > 0 && ' '}
+                      <span className={cls}>{sym}</span>
+                    </span>
+                  );
+                })}
+              </span>
+            );
+          })}
+        </span>
+      </div>
+    );
+  };
+
   if (!grammar || !table) {
     return (
       <div className="empty-state fade-in">
@@ -32,6 +96,83 @@ const ParsingTableView = ({ grammar, table, firstSets, followSets, onEliminateLR
           )}
         </div>
       </div>
+
+      {/* Revised Grammar Box */}
+      {revisedGrammarText && (
+        <div className="card revised-grammar-card">
+          <div className="card-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <span className="icon" style={{ fontSize: '1.25rem' }}>🔄</span>
+              <div>
+                <h3 className="card-title" style={{ margin: 0 }}>
+                  Revised Grammar (LL(1) Transformed)
+                </h3>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                  Original grammar remains preserved in the Grammar Editor input box
+                </div>
+              </div>
+            </div>
+            <div className="btn-group" style={{ flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className={`btn btn-secondary btn-sm ${copiedRevised ? 'copied' : ''}`}
+                onClick={handleCopyRevised}
+                title="Copy revised grammar to clipboard"
+              >
+                {copiedRevised ? '✓ Copied' : '📋 Copy Revised Grammar'}
+              </button>
+              {onApplyRevisedToEditor && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={onApplyRevisedToEditor}
+                  title="Load this revised grammar into the Grammar Editor input box"
+                >
+                  📥 Load into Editor
+                </button>
+              )}
+              {onRevertOriginal && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={onRevertOriginal}
+                  title="Revert parsing table to the original grammar"
+                >
+                  ↺ Revert to Original
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="revised-grammar-notice">
+            <span style={{ fontSize: '1rem', lineHeight: 1 }}>💡</span>
+            <div>
+              <strong>Original grammar retained in editor.</strong> The predictive parsing table below is generated using this revised LL(1) grammar.
+            </div>
+          </div>
+
+          {transformations && transformations.length > 0 && (
+            <div className="revised-grammar-badge-bar">
+              {transformations.map((t, idx) => (
+                <span key={idx} className="badge badge-purple" style={{ fontSize: '0.8rem' }}>
+                  ✓ {t.label}
+                  {t.changes?.length > 0 && (
+                    <span style={{ opacity: 0.9, marginLeft: '0.35rem' }}>
+                      (created {t.changes.map(c => c.newNT).filter(Boolean).join(', ')})
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="sample-grammar-box" style={{ margin: 0 }}>
+            <div className="sample-grammar-code">
+              {revisedGrammarText.split('\n').filter(l => l.trim().length > 0).map(renderRevisedLine)}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Non-LL(1) Conflict Analysis Card */}
       {!ll1 && (

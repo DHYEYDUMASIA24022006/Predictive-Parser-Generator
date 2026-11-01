@@ -31,7 +31,10 @@ const App = () => {
 
   // Grammar state
   const [grammarText, setGrammarText] = useState(DEFAULT_GRAMMAR);
+  const [originalGrammar, setOriginalGrammar] = useState(null);
   const [grammar, setGrammar] = useState(null);
+  const [revisedGrammarText, setRevisedGrammarText] = useState(null);
+  const [transformations, setTransformations] = useState([]);
   const [grammarErrors, setGrammarErrors] = useState([]);
 
   // Computed state
@@ -43,12 +46,25 @@ const App = () => {
   const [inputString, setInputString] = useState(DEFAULT_INPUT);
   const [parseResult, setParseResult] = useState(null);
 
+  /** User edits the grammar input box */
+  const handleGrammarChange = useCallback((newText) => {
+    setGrammarText(newText);
+    if (revisedGrammarText) {
+      setRevisedGrammarText(null);
+      setTransformations([]);
+    }
+  }, [revisedGrammarText]);
+
   /** Parse grammar and compute all sets + table */
   const handleParseGrammar = useCallback(() => {
+    setRevisedGrammarText(null);
+    setTransformations([]);
+
     const result = parseGrammar(grammarText);
     setGrammarErrors(result.errors);
 
     if (!result.grammar) {
+      setOriginalGrammar(null);
       setGrammar(null);
       setFirstSets(null);
       setFollowSets(null);
@@ -58,6 +74,7 @@ const App = () => {
     }
 
     const g = result.grammar;
+    setOriginalGrammar(g);
     setGrammar(g);
 
     const first = computeFirst(g);
@@ -83,11 +100,23 @@ const App = () => {
     setActiveTab(3);
   }, [grammar, parsingTable, inputString]);
 
-  /** Eliminate Left Recursion automatically and update grammar pipeline */
+  /** Eliminate Left Recursion automatically without overwriting the input box */
   const handleEliminateLR = useCallback(() => {
-    const result = eliminateLeftRecursion(grammarText);
+    const sourceText = revisedGrammarText || grammarText;
+    const result = eliminateLeftRecursion(sourceText);
     if (result.transformed) {
-      setGrammarText(result.text);
+      // Retain original in input box! Do NOT overwrite grammarText
+      setRevisedGrammarText(result.text);
+      setTransformations(prev => [
+        ...prev.filter(t => t.type !== 'eliminate_lr'),
+        { type: 'eliminate_lr', label: 'Left Recursion Eliminated', changes: result.changes },
+      ]);
+
+      if (!originalGrammar) {
+        const origRes = parseGrammar(grammarText);
+        if (origRes.grammar) setOriginalGrammar(origRes.grammar);
+      }
+
       const parseRes = parseGrammar(result.text);
       setGrammarErrors(parseRes.errors);
       if (parseRes.grammar) {
@@ -102,28 +131,67 @@ const App = () => {
       }
     }
     return result;
+  }, [grammarText, revisedGrammarText, originalGrammar]);
+
+  /** Apply Left Factoring automatically without overwriting the input box */
+  const handleLeftFactor = useCallback(() => {
+    const sourceText = revisedGrammarText || grammarText;
+    const result = applyLeftFactoring(sourceText);
+    if (result.transformed) {
+      // Retain original in input box! Do NOT overwrite grammarText
+      setRevisedGrammarText(result.text);
+      setTransformations(prev => [
+        ...prev.filter(t => t.type !== 'left_factor'),
+        { type: 'left_factor', label: 'Left Factored', changes: result.changes },
+      ]);
+
+      if (!originalGrammar) {
+        const origRes = parseGrammar(grammarText);
+        if (origRes.grammar) setOriginalGrammar(origRes.grammar);
+      }
+
+      const parseRes = parseGrammar(result.text);
+      setGrammarErrors(parseRes.errors);
+      if (parseRes.grammar) {
+        setGrammar(parseRes.grammar);
+        const first = computeFirst(parseRes.grammar);
+        setFirstSets(first);
+        const follow = computeFollow(parseRes.grammar, first);
+        setFollowSets(follow);
+        const table = buildParsingTable(parseRes.grammar, first, follow);
+        setParsingTable(table);
+        setParseResult(null);
+      }
+    }
+    return result;
+  }, [grammarText, revisedGrammarText, originalGrammar]);
+
+  /** Revert to original grammar parsing table */
+  const handleRevertToOriginal = useCallback(() => {
+    setRevisedGrammarText(null);
+    setTransformations([]);
+    const parseRes = parseGrammar(grammarText);
+    setGrammarErrors(parseRes.errors);
+    if (parseRes.grammar) {
+      setOriginalGrammar(parseRes.grammar);
+      setGrammar(parseRes.grammar);
+      const first = computeFirst(parseRes.grammar);
+      setFirstSets(first);
+      const follow = computeFollow(parseRes.grammar, first);
+      setFollowSets(follow);
+      const table = buildParsingTable(parseRes.grammar, first, follow);
+      setParsingTable(table);
+      setParseResult(null);
+    }
   }, [grammarText]);
 
-  /** Apply Left Factoring automatically and update grammar pipeline */
-  const handleLeftFactor = useCallback(() => {
-    const result = applyLeftFactoring(grammarText);
-    if (result.transformed) {
-      setGrammarText(result.text);
-      const parseRes = parseGrammar(result.text);
-      setGrammarErrors(parseRes.errors);
-      if (parseRes.grammar) {
-        setGrammar(parseRes.grammar);
-        const first = computeFirst(parseRes.grammar);
-        setFirstSets(first);
-        const follow = computeFollow(parseRes.grammar, first);
-        setFollowSets(follow);
-        const table = buildParsingTable(parseRes.grammar, first, follow);
-        setParsingTable(table);
-        setParseResult(null);
-      }
-    }
-    return result;
-  }, [grammarText]);
+  /** Load the revised grammar into the editor input box */
+  const handleApplyRevisedToEditor = useCallback(() => {
+    if (!revisedGrammarText) return;
+    setGrammarText(revisedGrammarText);
+    setRevisedGrammarText(null);
+    setTransformations([]);
+  }, [revisedGrammarText]);
 
   const grammarReady = grammar !== null;
 
@@ -172,12 +240,14 @@ const App = () => {
           {activeTab === 0 && (
             <GrammarEditor
               grammarText={grammarText}
-              onGrammarChange={setGrammarText}
-              grammar={grammar}
+              onGrammarChange={handleGrammarChange}
+              grammar={originalGrammar || grammar}
+              revisedGrammarText={revisedGrammarText}
               errors={grammarErrors}
               onParse={handleParseGrammar}
               onEliminateLR={handleEliminateLR}
               onLeftFactor={handleLeftFactor}
+              onNavigateToParsingTable={() => setActiveTab(2)}
             />
           )}
           {activeTab === 1 && (
@@ -193,8 +263,12 @@ const App = () => {
               table={parsingTable}
               firstSets={firstSets}
               followSets={followSets}
+              revisedGrammarText={revisedGrammarText}
+              transformations={transformations}
               onEliminateLR={handleEliminateLR}
               onLeftFactor={handleLeftFactor}
+              onRevertOriginal={handleRevertToOriginal}
+              onApplyRevisedToEditor={handleApplyRevisedToEditor}
             />
           )}
           {activeTab === 3 && (
